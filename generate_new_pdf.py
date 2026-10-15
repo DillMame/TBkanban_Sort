@@ -6,15 +6,15 @@ import fitz
 from tkinter import messagebox
 import sys
 
-if getattr(sys, 'frozen', False):
-    cur_dir = os.path.dirname(sys.executable)
-else:
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
+# if getattr(sys, 'frozen', False):
+#     cur_dir = os.path.dirname(sys.executable)
+# else:
+#     cur_dir = os.path.dirname(os.path.abspath(__file__))
+#
+# os.chdir(cur_dir)
+# temp_dir = os.path.join(cur_dir, 'temp_dir')
 
-os.chdir(cur_dir)
-temp_dir = os.path.join(cur_dir, 'temp_dir')
-
-def TB_merge(files,file_name,progress_bar, progress_label,title,callback):
+def TB_merge(files,file_name,update_progress,title,callback):
     now = dt.datetime.now()
     ymdhms = now.strftime('%Y%m%d%H%M%S')
 
@@ -27,7 +27,7 @@ def TB_merge(files,file_name,progress_bar, progress_label,title,callback):
 
     for f_cnt,file in enumerate(files,start=1):
         total_files = len(files)
-        update_progress(progress_bar,progress_label, f_cnt-1, total_files , title)
+        update_progress(f_cnt-1, total_files , title)
 
         with open(file,'rb') as pdf_file:
             pdf_document = fitz.open(stream=pdf_file.read(),filetype='pdf')
@@ -37,42 +37,50 @@ def TB_merge(files,file_name,progress_bar, progress_label,title,callback):
     combined_pdf.save(save_path, garbage=4, deflate=True)
     combined_pdf.close()
 
-    try:
-        for file in files:
-            pdf_path = os.path.join(temp_dir, file)
-            os.remove(pdf_path)
-    except:
-        messagebox.showerror('削除エラー',f'削除に失敗しました。temp_dirの中身を削除してください。\n{file}')
+    # try:
+    #     for file in files:
+    #         pdf_path = os.path.join(temp_dir, file)
+    #         os.remove(pdf_path)
+    # except:
+    #     messagebox.showerror('削除エラー',f'削除に失敗しました。temp_dirの中身を削除してください。\n{file}')
 
-def generate_new_pdf(progress_bar, progress_label,callback):
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-    files = glob.glob(rf'{temp_dir}\meisai*.pdf')
-
-    if len(files) !=0:
-        file_name = 'TB_明細_'
-        title = '工程2-4 明細ファイル再構成'
-
-        TB_merge(files,file_name,progress_bar, progress_label,title,callback)
-
-    files = glob.glob(rf'{temp_dir}\osakabe*.pdf')
-
-    if len(files) !=0:
-        file_name = 'TB_刑部_'
-        title = '工程3-4 刑部カンバンファイル再構成'
-
-        TB_merge(files,file_name,progress_bar, progress_label,title,callback)
-
-    files = glob.glob(rf'{temp_dir}\*.pdf')
-
-    if len(files) !=0:
-        file_name = 'TB_かんばん_'
-
-        title = '工程4-4 その他カンバンファイル再構成'
-        TB_merge(files,file_name,progress_bar, progress_label,title,callback)
+def generate_new_pdf(update_progress,callback,MsgBox,download_path,output_pages):
+    for group_name, items in output_pages.items:
+        print(group_name,len(items))
+        # if output_pages['明細']:
+        #     file_name = 'TB_明細_'
+        #     title = '工程2-4 明細ファイル再構成'
+        #
+        #     TB_merge(doc, output_pages['明細'], file_name,update_progress, title, callback)
+    #
+    # os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    #
+    # files = glob.glob(rf'{temp_dir}\meisai*.pdf')
+    #
+    # if len(files) !=0:
+    #     file_name = 'TB_明細_'
+    #     title = '工程2-4 明細ファイル再構成'
+    #
+    #     TB_merge(files,file_name,progress_bar, progress_label,title,callback)
+    #
+    # files = glob.glob(rf'{temp_dir}\osakabe*.pdf')
+    #
+    # if len(files) !=0:
+    #     file_name = 'TB_刑部_'
+    #     title = '工程3-4 刑部カンバンファイル再構成'
+    #
+    #     TB_merge(files,file_name,update_progress,title,callback)
+    #
+    # files = glob.glob(rf'{temp_dir}\*.pdf')
+    #
+    # if len(files) !=0:
+    #     file_name = 'TB_かんばん_'
+    #
+    #     title = '工程4-4 その他カンバンファイル再構成'
+    #     TB_merge(files,file_name,update_progress,title,callback)
 
     callback()
-    messagebox.showinfo('完了', 'カンバン再構成完了')
+    MsgBox('完了', 'カンバン再構成完了','info')
 
 
 if __name__ == '__main__':
